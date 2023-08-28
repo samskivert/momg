@@ -44,6 +44,7 @@ end
 
 function create_nest(x)
   local nest = make_actor(1, x, 13, 0)
+  nest.h = 0.1
   nest.ay = 0
   nest.fx = 0.5
   return nest
@@ -62,8 +63,6 @@ end
 
 function drop_egg (k)
   local egg = make_actor(k, next_egg_x, 1, 0)
-  egg.frames = 2
-  egg.h = 0.1
   egg.fx = 0.99
   egg.ay = 0.01 * speed_factor
 end
