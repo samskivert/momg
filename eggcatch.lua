@@ -21,10 +21,15 @@ function draw_hud ()
   print("best: "..best_speed.."x", 80, 0)
 end
 
-function create_nest()
-  nest = make_actor(1, 6, 13, 0)
+function create_nest(x)
+  local nest = make_actor(1, x, 13, 0)
   nest.ay = 0
   nest.fx = 0.5
+  return nest
+end
+
+function is_egg (k)
+  return k == 4 or k == 20 or k == 36
 end
 
 function drop_egg (k)
@@ -37,15 +42,21 @@ end
 
 function drop_next_egg ()
   next_egg_x = 8 + (rnd(6) - 3) * min(speed_factor, 2)
-  drop_egg(4)
+  local r = rnd(100)
+  if (speed_factor >= 3 and not xnest and r < 10) then
+    drop_egg(20)
+  elseif (speed_factor >= 2 and r < 15) then
+    drop_egg(36)
+  else
+    drop_egg(4)
+  end
 end
 
 function _init ()
 end
 
 function on_collide (a1, a2)
-  if (a1.k == 1) then
-    adjust_score(1)
+  if (a1.k == 1 and is_egg(a2.k)) then
     a2.life = 0
     local crack = make_particle(a2.k+8, a2.x, a2.y, a2.d)
     crack.frames = 4
@@ -61,6 +72,23 @@ function on_collide (a1, a2)
     bird.vx = (next_egg_x - a2.x)/10
     bird.vy = -0.1 - rnd(0.2)
     bird.ay = -0.05
+    -- if they caught a white or golden egg, score goes up 1
+    if (a2.k == 4 or a2.k == 20) then
+      adjust_score(1)
+    end
+    -- if they caught a red egg, score goes down 5
+    if (a2.k == 36) then
+      adjust_score(-5)
+      -- TODO: also lose second nest? or maybe it's a good tradeoff to let you keep it
+    end
+    -- if they caught a golden egg, add a second nest
+    if (a2.k == 20) then
+      if (not xnest or xnest.life <= 0) then
+        xnest = create_nest(a1.x-1)
+        xnest.vx = a1.vx
+        xnest.ax = a1.ax
+      end
+    end
   end
 end
 
@@ -70,7 +98,7 @@ function _update ()
     return
   elseif (splash_time > 0) then
     splash_time = 0
-    create_nest()
+    nest = create_nest(6)
     drop_next_egg()
   end
 
@@ -85,17 +113,24 @@ function _update ()
       splat.dframe = 1
       splat.life = 5
       splat.dlife = 1
-      adjust_score(-1)
       drop_next_egg()
+      if (a.k != 36) then
+        adjust_score(-1)
+        -- if they have a second nest, they lose it
+        if (xnest) xnest.life = 0
+      end
     end
   end
 
   if (btn(0)) then
     nest.ax = -0.5
+    if (xnest) xnest.ax = -0.5
   elseif (btn(1)) then
     nest.ax = 0.5
+    if (xnest) xnest.ax = 0.5
   else
     nest.ax = 0
+    if (xnest) xnest.ax = 0
   end
 end
 
