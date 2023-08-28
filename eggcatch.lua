@@ -1,4 +1,5 @@
 splash_mode = true
+new_best_best = false
 score = 0
 speed_factor = 1
 best_speed = 1
@@ -7,12 +8,6 @@ eggs_remain = 0
 next_egg_x = 0
 ctrl_flip = 1
 xnest = {life=0, ax=0} -- placeholder
-
-function adjust_score (ds)
-  score = max(0, score+ds)
-  speed_factor = (score+10)/10
-  best_speed = max(speed_factor, best_speed)
-end
 
 function print_center (text, y)
   local x = (128 - #text*4)/2
@@ -25,11 +20,15 @@ function draw_splash ()
     print_center("best best:"..best_best_speed.."x", 56)
     print_center("press X to start", 72)
   else
-    if (best_speed > best_best_speed) then
+    if (new_best_best) then
       print_center("new best best!", 26)
-      print_center(best_speed.."x", 40)
+      print_center(best_best_speed.."x", 40)
     else
-      print_center("good job!", 26)
+      if (best_speed == best_best_speed) then
+        print_center("so close!", 26)
+      else
+        print_center("good job!", 26)
+      end
       print_center("best:"..best_speed.."x", 40)
       print_center("best best:"..best_best_speed.."x", 56)
     end
@@ -50,6 +49,13 @@ function create_nest(x)
   return nest
 end
 
+function adjust_score (ds)
+  score = max(0, score+ds)
+  speed_factor = (score+10)/10
+  best_speed = max(speed_factor, best_speed)
+  ctrl_flip = 1 -- reset control flip
+end
+
 function is_egg (k)
   return k == 4 or k == 20 or k == 36
 end
@@ -60,12 +66,11 @@ function drop_egg (k)
   egg.h = 0.1
   egg.fx = 0.99
   egg.ay = 0.01 * speed_factor
-  ctrl_flip = 1 -- reset control flip
 end
 
 function drop_next_egg ()
   if (eggs_remain == 0) then
-    splash_mode = true
+    game_over()
     return
   end
 
@@ -83,14 +88,19 @@ end
 
 function start_game ()
   splash_mode = false
-  -- note the old best best speed
-  best_best_speed = max(best_speed, best_best_speed)
   -- reset for the new game
   score = 0
   speed_factor = 1
   best_speed = 1
-  eggs_remain = 100
+  eggs_remain = 10
   drop_next_egg()
+end
+
+function game_over ()
+  new_best_best = best_speed > best_best_speed
+  best_best_speed = max(best_speed, best_best_speed)
+  dset(0, best_best_speed)
+  splash_mode = true
 end
 
 function make_bird (k, x, y, tx)
@@ -106,6 +116,8 @@ function make_bird (k, x, y, tx)
 end
 
 function _init ()
+  cartdata("eggcatch")
+  best_best_speed = max(dget(0), 1)
   nest = create_nest(6)
 end
 
@@ -117,7 +129,6 @@ function on_collide (a1, a2)
     crack.dframe = 1
     crack.life = 3
     crack.dlife = 1
-    drop_next_egg()
     local bird = make_bird(a2.k-2, a2.x, a2.y, next_egg_x)
     -- if they caught a white or golden egg, score goes up 1
     if (a2.k == 4 or a2.k == 20) then
@@ -137,6 +148,7 @@ function on_collide (a1, a2)
         xnest.ax = a1.ax
       end
     end
+    drop_next_egg()
   end
 end
 
@@ -164,8 +176,8 @@ function _update ()
       splat.dframe = 1
       splat.life = 5
       splat.dlife = 1
-      drop_next_egg()
       adjust_score(-1)
+      drop_next_egg()
       -- if they have a second nest, they lose it
       xnest.life = 0
     end
