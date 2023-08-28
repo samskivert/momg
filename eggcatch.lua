@@ -5,6 +5,8 @@ gravity = 0.01
 speed_factor = 1
 best_speed = 1
 splash_time = 1
+ctrl_flip = 1
+xnest = {life=0, ax=0} -- placeholder
 
 function adjust_score (ds)
   score = max(0, score+ds)
@@ -38,15 +40,16 @@ function drop_egg (k)
   egg.h = 0.1
   egg.fx = 0.99
   egg.ay = gravity * speed_factor
+  ctrl_flip = 1 -- reset control flip
 end
 
 function drop_next_egg ()
   next_egg_x = 8 + (rnd(6) - 3) * min(speed_factor, 2)
   local r = rnd(100)
-  if (speed_factor >= 3 and not xnest and r < 10) then
-    drop_egg(20)
-  elseif (speed_factor >= 2 and r < 15) then
+  if (speed_factor >= 2 and r < 5) then
     drop_egg(36)
+  elseif (speed_factor >= 3 and r < 10 and xnest.life == 0) then
+    drop_egg(20)
   else
     drop_egg(4)
   end
@@ -76,14 +79,15 @@ function on_collide (a1, a2)
     if (a2.k == 4 or a2.k == 20) then
       adjust_score(1)
     end
-    -- if they caught a red egg, score goes down 5
+    -- if they caught a red egg, score goes up 3
     if (a2.k == 36) then
-      adjust_score(-5)
-      -- TODO: also lose second nest? or maybe it's a good tradeoff to let you keep it
+      adjust_score(3)
+      ctrl_flip = -1 -- and flip controls
+      bird.vx *= -1 -- red birds fly opposite
     end
     -- if they caught a golden egg, add a second nest
     if (a2.k == 20) then
-      if (not xnest or xnest.life <= 0) then
+      if (xnest.life <= 0) then
         xnest = create_nest(a1.x-1)
         xnest.vx = a1.vx
         xnest.ax = a1.ax
@@ -114,23 +118,21 @@ function _update ()
       splat.life = 5
       splat.dlife = 1
       drop_next_egg()
-      if (a.k != 36) then
-        adjust_score(-1)
-        -- if they have a second nest, they lose it
-        if (xnest) xnest.life = 0
-      end
+      adjust_score(-1)
+      -- if they have a second nest, they lose it
+      xnest.life = 0
     end
   end
 
   if (btn(0)) then
-    nest.ax = -0.5
-    if (xnest) xnest.ax = -0.5
+    nest.ax = -0.5 * ctrl_flip
+    xnest.ax = -0.5 * ctrl_flip
   elseif (btn(1)) then
-    nest.ax = 0.5
-    if (xnest) xnest.ax = 0.5
+    nest.ax = 0.5 * ctrl_flip
+    xnest.ax = 0.5 * ctrl_flip
   else
     nest.ax = 0
-    if (xnest) xnest.ax = 0
+    xnest.ax = 0
   end
 end
 
