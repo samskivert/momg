@@ -78,7 +78,7 @@ function drop_next_egg ()
   local r = rnd(100)
   if (speed_factor >= 2 and r < 5) then
     drop_egg(36)
-  elseif (speed_factor >= 3 and r < 10 and xnest.life == 0) then
+  elseif (speed_factor >= 3 and r < 15 and xnest.life == 0) then
     drop_egg(20)
   else
     drop_egg(4)
@@ -92,8 +92,9 @@ function start_game ()
   score = 0
   speed_factor = 1
   best_speed = 1
-  eggs_remain = 10
+  eggs_remain = 100
   drop_next_egg()
+  sfx(4)
 end
 
 function game_over ()
@@ -133,12 +134,14 @@ function on_collide (a1, a2)
     -- if they caught a white or golden egg, score goes up 1
     if (a2.k == 4 or a2.k == 20) then
       adjust_score(1)
+      sfx(0)
     end
     -- if they caught a red egg, score goes up 3
     if (a2.k == 36) then
       adjust_score(3)
       ctrl_flip = -1 -- and flip controls
       bird.vx *= -1 -- red birds fly opposite
+      sfx(1)
     end
     -- if they caught a golden egg, add a second nest
     if (a2.k == 20) then
@@ -146,6 +149,7 @@ function on_collide (a1, a2)
         xnest = create_nest(a1.x-1)
         xnest.vx = a1.vx
         xnest.ax = a1.ax
+        sfx(3)
       end
     end
     drop_next_egg()
@@ -178,6 +182,7 @@ function _update ()
       splat.dlife = 1
       adjust_score(-1)
       drop_next_egg()
+      sfx(2)
       -- if they have a second nest, they lose it
       xnest.life = 0
     end
