@@ -96,10 +96,10 @@ function update_actors ()
   end
 end
 
-function collide (a1, a2, on_collide)
-  if (not a1) return
-  if (not a2) return
+function check_collide (a1, a2, on_collide)
   if (a1 == a2) return
+  if (not a1 or a1.life <= 0) return
+  if (not a2 or a2.life <= 0) return
 
   local dx = a1.x - a2.x
   local dy = a1.y - a2.y
@@ -116,7 +116,7 @@ function collide_actors (on_collide)
     local ai = actors[i]
     for j=i+1, #actors do
       local aj = actors[j]
-      collide(ai, aj, on_collide)
+      check_collide(ai, aj, on_collide)
     end
   end
 end
