@@ -18,8 +18,8 @@ function new_actor (k, x, y, d)
     w=3/8, h=0.5, -- half-width
     d=d or -1, -- direction
     t=0,
+    move=move_actor,
     draw=draw_actor,
-    update=update_actor,
   }
 end
 
@@ -64,36 +64,29 @@ function draw_actors ()
   end
 end
 
-function update_actor (a)
-  if (a.life <= 0) then
-    del(a.table, a)
-    return
-  end
-
+function move_actor (a)
   a.x += a.vx
   a.y += a.vy
-  a.life -= a.dlife
-
-  -- update animation frame
-  a:anim()
-
-  -- gravity and friction
   a.vx += a.ax
   a.vx *= a.fx
   a.vy += a.ay
   a.vy *= a.fy
+end
 
-  -- counters
-  a.t = a.t + 1
+function update_actor (a)
+  if (a.life <= 0) then
+    del(a.table, a)
+  else
+    a.life -= a.dlife
+    a.t = a.t + 1
+    a:move()
+    a:anim()
+  end
 end
 
 function update_actors ()
-  for a in all(actors) do
-    a:update()
-  end
-  for p in all(particles) do
-    p:update()
-  end
+  foreach(actors, update_actor)
+  foreach(particles, update_actor)
 end
 
 function check_collide (a1, a2, on_collide)
