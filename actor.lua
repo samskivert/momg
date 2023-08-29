@@ -47,12 +47,36 @@ function make_particle (k, x, y, d)
   return p
 end
 
+function make_text (text, x, y, color)
+  local a = new_actor(0, x, y, 1)
+  a.table = particles
+  a.text = text
+  a.draw = draw_text
+  a.color = color or 7 -- default to white
+  add(particles, a)
+  return a
+end
+
 function draw_actor (a)
   local fr = a.k
   fr += a.frame
   local sx = a.x*8-4
   local sy = a.y*8-8
   spr(fr, sx, sy, 1, 1, a.d < 0)
+end
+
+function draw_text (a)
+  local wid = #(a.text)*4
+  local sx = a.x*8-wid/2
+  local sy = a.y*8-8
+  -- fade out on the last four frames (TODO: support custom colors/palettes?)
+  local color = a.color
+  if (a.life < 2) then
+    color -= 2
+  elseif (a.life < 4) then
+    color -= 1
+  end
+  print(a.text, sx, sy, color)
 end
 
 function draw_actors ()
