@@ -1,10 +1,10 @@
 pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
--- catch the eggs
+-- toss the eggs
 -- by samskivert
 #include actor.lua
-#include eggthrow.lua
+#include eggtoss.lua
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

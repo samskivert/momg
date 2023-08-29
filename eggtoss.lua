@@ -18,7 +18,7 @@ end
 
 function draw_splash ()
   if (games_played == 0) then
-    print_center("throw the eggs", 40)
+    print_center("toss the eggs", 40)
     print_center("high score:"..high_score, 56)
     print_center("press X to start", 72)
   else
@@ -44,7 +44,6 @@ function draw_hud ()
 end
 
 function draw_meter ()
-  -- draw the power meter
   if (egg and power > 0) then
     local my = egg.y*8+2
     line(egg.x, my, egg.x+max_power, my-max_power+0.5, 1)
@@ -119,7 +118,7 @@ function create_egg ()
   eggs_remain -= 1
 end
 
-function throw_egg (power)
+function toss_egg (power)
   egg.vx = 0.025 * power
   egg.vy = -0.05 * power
   egg.ay = 0.01
@@ -159,6 +158,13 @@ function start_game ()
   create_egg()
   add_next_nest()
   sfx(4)
+
+  local texta = make_text("hold X to set power", 8, 7)
+  texta.life = 60
+  texta.dlife = 1
+  local textb = make_text("release X to toss", 8, 8)
+  textb.life = 60
+  textb.dlife = 1
 end
 
 function game_over ()
@@ -171,7 +177,7 @@ function game_over ()
 end
 
 function _init ()
-  cartdata("eggthrow")
+  cartdata("eggtoss")
   high_score = dget(0)
 end
 
@@ -222,7 +228,7 @@ function _update ()
       end
     elseif (press_time > 0) then
       if (power > 2) then
-        throw_egg(power)
+        toss_egg(power)
       end -- otherwise abort move
       press_time = 0
       power = 0
